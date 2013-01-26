@@ -4,6 +4,12 @@
 import sys
 import os
 import re
+import tvdbapi
+
+# theTVDB  settings
+tvdb_API_key = '5B7195F0E843BE66'
+seriesname = 'naruto shippuuden'
+language = 'en'
 
 match_pattern = 'naruto'
 match_extensions = 'mkv$|mp4$'
@@ -17,21 +23,7 @@ filler_episodes = [[144,151],
 				   [284,289],
 				   [290,295]]
 
-seasons = [0,
-			32, #season 1
-			21, #season 2
-			18, #season 3
-			17, #season 4
-			24, #season 5
-			31, #season 6
-			8,  #season 7
-			24, #season 8
-			21, #season 9
-			22, #season 10
-			24, #season 11
-			18, #season 12
-			38 #season 13
-			]
+seasons = tvdbapi.fetchSeasonsFromTheTVDB(tvdb_API_key=tvdb_API_key, seriesname=seriesname, language=language, verbose=True)
 
 to_dir = os.path.join('/Volumes', 'Rukia', 'Anime', 'Naruto Shippuuden')
 
