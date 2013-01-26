@@ -51,7 +51,6 @@ def fetchSeasonsFromTheTVDB(tvdb_API_key, seriesname, language, verbose=False):
 
 	seasons_dict = Counter(seasons_tmp)
 	for i in sorted([int(x) for x in seasons_dict.keys()]):
-		print i
 		seasons.append(seasons_dict[str(i)])
 
 	if verbose: print seasons

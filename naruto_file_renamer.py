@@ -23,7 +23,7 @@ filler_episodes = [[144,151],
 				   [284,289],
 				   [290,295]]
 
-seasons = tvdbapi.fetchSeasonsFromTheTVDB(tvdb_API_key=tvdb_API_key, seriesname=seriesname, language=language, verbose=True)
+seasons = tvdbapi.fetchSeasonsFromTheTVDB(tvdb_API_key=tvdb_API_key, seriesname=seriesname, language=language, verbose=False)
 
 to_dir = os.path.join('/Volumes', 'Rukia', 'Anime', 'Naruto Shippuuden')
 
@@ -140,7 +140,8 @@ def genEpisodeName(season, episode):
 	return "S%02dE%02d" % (season, episode)
 
 def genEpisodeAndSeasonDictionaries(seasons):
-	episodes = [x for x in xrange(1,sum(seasons)+1)]
+	# skip index 0 as it contains only special episodes
+	episodes = [x for x in xrange(1,sum(seasons[1:])+1)]
 	season_dict = {}
 	episode_dict = {}
 
