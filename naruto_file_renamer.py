@@ -4,6 +4,7 @@
 import sys
 import os
 import re
+import shutil
 import tvdbapi
 
 # theTVDB  settings
@@ -174,7 +175,8 @@ def main():
 
 	for episode in file_names:
 		if real:
-			print os.path.join(episode.location, episode.filename), os.path.join(to_dir, episode.new_name)
+			print episode.filename, "->", episode.new_name, "->", to_dir
+			shutil.move(os.path.join(episode.location, episode.filename), os.path.join(to_dir, episode.new_name))
 		else:
 			print episode.filename, "->", episode.new_name, "->", to_dir
 
