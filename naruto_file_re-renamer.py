@@ -36,6 +36,7 @@ seasons = [0,
 			]
 
 # KNOWN episode 220 maps to s11 e02
+# KNOWN episode 219 maps to s11 e01
 
 class AnimeEpisode():
 	"""docstring for AnimeEpisode"""
@@ -45,6 +46,7 @@ class AnimeEpisode():
 		self.filename_list = self.splitName(self.filename)
 		self.show_name = self.getShowName()
 		self.episode = self.getEpisodeNumber()
+		self.season_episode_name = self.generateSeasonEpisodeName()
 		self.getRest()
 		self.new_name = str(self)
 
@@ -59,10 +61,23 @@ class AnimeEpisode():
 		return self.filename_list[0].capitalize() + ' ' + self.filename_list[1].capitalize().replace('Shippuden', 'Shippuuden')
 
 	def getEpisodeNumber(self):
-		if self.filename_list[2] == '220':
-			return '%s %s' % ('s11e02', self.filename_list[2])
+		return self.filename_list[2]
+
+	def generateSeasonEpisodeName(self):
+		if "-" in self.episode:
+			lookup = self.episode.split('-')[0]
 		else:
-			return self.filename_list[2]
+			lookup = self.episode
+		episode_dict, season_dict = genEpisodeAndSeasonDictionaries(seasons)
+		try:
+			episode = episode_dict[lookup]
+		except KeyError as e:
+			sys.exit('Episode (%s) seem to be too new, could not be found in episode dictionary, please update the script..' % lookup)
+		episode_number = episode[episode.keys()[0]]
+		if "-" in self.episode:
+			double_episode_number = int(episode_number.split('E')[1])+1
+			episode_number = "%sE%02d" % (episode_number, double_episode_number)
+		return episode_number
 
 	def getRest(self):
 		last_without_extension = [self.filename_list[-1].split('.')[0]]
@@ -93,19 +108,8 @@ class AnimeEpisode():
 			self.group = None
 			self.filler = None
 
-	# def isFiller(self):
-	# 	if '-' in self.episode:
-	# 		episode = self.episode.split('-')[0]
-	# 	else:
-	# 		episode = self.episode
-	# 	fillers = []
-	# 	for entry in filler_episodes:
-	# 		fillers += range(entry[0], entry[1]+1)
-	# 	fillers = [str(x) for x in fillers]
-	# 	return episode in fillers
-
 	def __str__(self):
-		ret_list = [self.show_name, self.episode]
+		ret_list = [self.show_name, self.season_episode_name, self.episode]
 		ret_list += [self.format, self.group]
 		if self.hash:
 			ret_list.append(self.hash)
@@ -122,12 +126,37 @@ def getFiles(directories):
 			for filename in [os.path.abspath(os.path.join(root, filename)) for filename in files if re.search(match_pattern, filename, flags=re.IGNORECASE) and re.search(match_extensions, filename, flags=re.IGNORECASE)]:
 				yield filename
 
+def genEpisodeName(season, episode):
+	return "S%02dE%02d" % (season, episode)
+
+def genEpisodeAndSeasonDictionaries(seasons):
+	episodes = [x for x in xrange(1,sum(seasons)+1)]
+	season_dict = {}
+	episode_dict = {}
+
+	incr = 1
+	episode_counter = episodes[0]
+	while len(episodes) != 0:
+		try:
+			if len(season_dict[incr]): pass
+		except:
+			season_dict[incr] = []
+		season_dict[incr].append(episode_counter)
+		episode_dict[str(episodes[0])] = {incr: genEpisodeName(incr, episode_counter)}
+		episodes.pop(0)
+		if len(season_dict[incr]) == seasons[incr]:
+		 	incr += 1
+		 	episode_counter = 1
+		else:
+			episode_counter += 1
+	return episode_dict, season_dict
+
+
 def main():
 	if not os.path.isdir(to_dir):
 		os.makedirs(to_dir)
 	file_names = [(AnimeEpisode(file)) for file in getFiles(sys.argv[1:])]
 
-	new_names = []
 	for episode in file_names:
 		print episode.new_name
 		#shutil.move(os.path.join(episode.location, episode.filename), os.path.join(to_dir, episode.new_name))
