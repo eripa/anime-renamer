@@ -38,7 +38,7 @@ class AnimeEpisode():
 			self.skip = False
 		self.show_name = result.groupdict()['show_name']
 		self.episode = result.groupdict()['episode']
-		self.extension = result.groupdict()['extension']
+		self.extension = result.groupdict()['extension'].translate(None, ".")
 		if result.groupdict()['group']:
 			self.group = result.groupdict()['group'].translate(None, "[]")
 		else:
