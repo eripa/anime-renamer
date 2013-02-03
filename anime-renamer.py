@@ -8,6 +8,9 @@ import shutil
 import tvdb_api
 import ConfigParser
 
+__author__ = "eripa"
+__version__ = "0.9"
+
 class AnimeEpisode():
 	"""docstring for AnimeEpisode"""
 	def __init__(self, file, tvdb, config):
