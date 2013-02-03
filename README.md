@@ -3,7 +3,7 @@ anime-renamer
 
 A script for parsing and renaming anime episodes such as Bleach, Naruto and One Piece. The script will fetch meta-data from theTVDB to figure out "real" episode numbering (ex S02E03) from incremental numnering model used in anime releases.
 
-The script make use of the excellent [tvdb_api](https://github.com/dbr/tvdb_api) by [dbr](https://github.com/dbr).
+The script uses the excellent [tvdb_api](https://github.com/dbr/tvdb_api) by [dbr](https://github.com/dbr).
 
 ## How to use
 ### config file
@@ -27,7 +27,7 @@ an "output\_dir" can also be specified. This will be a relative path to the glob
 ### Run the script
 The script takes folders and one argument as input:
 
-    ./anime-renamer.py \[folder 1] \[folder 2] \[folder n] \[....] [--real]
+    ./anime-renamer.py [folder 1] [folder 2] [folder n] [folder ...] [--real]
 
 
 If --real is omitted from the command line, noting will be commited. Append --real to make the script actually rename and move files.
