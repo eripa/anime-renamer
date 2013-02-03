@@ -14,39 +14,43 @@ class AnimeEpisode():
 		self.config = config
 		self.filename = os.path.basename(file)
 		self.location = os.path.dirname(file)
-		self.filename_list = self.splitName(self.filename)
-		self.group = self.getGroup()
-		self.show_name = self.getShowName()
-		self.episode = self.getEpisodeNumber()
-		self.tvdb_metadata = tvdb[self.show_name]
-		self.season_episode_name = self.generateSeasonEpisodeName()
-		self.filler = self.isFiller()
-		self.getRest()
-		self.output_dir = self.getOutputDir()
-		self.new_name = str(self)
+		self.all = self.getAll(self.config)
+		if not self.skip:
+			self.tvdb_metadata = tvdb[self.show_name]
+			self.season_episode_name = self.generateSeasonEpisodeName()
+			self.filler = self.isFiller()
+			self.output_dir = self.getOutputDir()
+			self.new_name = str(self)
 
-	def splitName(self, filename):
-		if '_' in filename:
-			split_name = filename.split('_')
+	def getAll(self, config):
+		pattern = []
+		pattern.append("(?P<group>^\[\w*\])?.+?")
+		pattern.append("(?P<show_name>"+"|".join([show.replace(' ', '.') for show in config.get('global', 'shows').split(',')]) + ")"+"{1}.+?")
+		pattern.append("(?P<episode>\d+)[\ _-]+?(?P<format>\[\w*\]).*?(?P<hash>\[\w*\])?.*?")
+		pattern.append("(?P<extension>\..+)")
+		pattern = "".join(pattern)
+		result = re.match(pattern, self.filename, flags=re.IGNORECASE)
+		if not result:
+			# no match, mark episode as skipped
+			self.skip = True
+			return
 		else:
-			split_name = filename.split()
-		return split_name
-	
-	def getGroup(self):
-		return self.filename_list[0].translate(None, "[]")
-	
-	def getShowName(self):
-		return self.filename_list[1].capitalize() + ' ' + self.filename_list[2].capitalize()
-
-	def getEpisodeNumber(self):
-		if self.filename_list[3] == '-':
-			episode = self.filename_list[4]
+			self.skip = False
+		self.show_name = result.groupdict()['show_name']
+		self.episode = result.groupdict()['episode']
+		self.extension = result.groupdict()['extension']
+		if result.groupdict()['group']:
+			self.group = result.groupdict()['group'].translate(None, "[]")
 		else:
-			episode = self.filename_list[3]
-		if 'v' in episode:
-			return episode.split('v')[0]
+			self.group = None
+		if result.groupdict()['format']:
+			self.format = result.groupdict()['format'].translate(None, "[]")
 		else:
-			return episode
+			self.format = None
+		if result.groupdict()['hash']:
+			self.hash = result.groupdict()['hash'].translate(None, "[]")
+		else:
+			self.hash = None
 
 	def getOutputDir(self):
 		if self.config.has_section(self.show_name.lower()):
@@ -67,39 +71,12 @@ class AnimeEpisode():
 		try:
 			episode = episode_dict[lookup]
 		except KeyError as e:
-			sys.exit('Episode (%s) seem to be too new, could not be found in episode dictionary, please update the script..' % lookup)
+			sys.exit('Episode (%s) does not seem to be too exist according to the TVDB lookup information.' % lookup)
 		episode_number = episode[episode.keys()[0]]
 		if "-" in self.episode:
 			double_episode_number = int(episode_number.split('E')[1])+1
 			episode_number = "%sE%02d" % (episode_number, double_episode_number)
 		return episode_number
-
-	def getRest(self):
-		if self.filename_list[3] == '-':
-			without_extension = self.filename_list[5].split('.')[0]
-			self.extension = self.filename_list[5].split('.')[1]
-		else:
-			without_extension = self.filename_list[4].split('.')[0]
-			self.extension = self.filename_list[4].split('.')[1]
-		l = without_extension.translate(None, '[').split(']')[:-1]
-		if len(l) is 1:
-			self.format = l[0]
-			self.hash = None
-			self.other = None
-		elif len(l) is 2:
-			self.format = l[0]
-			self.hash = l[1]
-			self.other = None
-		elif len(l) is 3:
-			self.format = l[1]
-			self.hash = l[2]
-			self.other = l[0]
-		else:
-			self.format = None
-			self.hash = None
-			self.other = None
-		if 'x' in self.format:
-			self.format = self.format.split('x')[1] + "p"
 
 	def isFiller(self):
 		if '-' in self.episode:
@@ -118,7 +95,6 @@ class AnimeEpisode():
 						# a single episode
 						fillers += range(int(entry[0]), int(entry[0])+1)
 				fillers = [str(x) for x in fillers]
-		print fillers
 		return episode in fillers
 
 	def genEpisodeAndSeasonDictionaries(self, seasons):
@@ -178,11 +154,13 @@ def main():
 	config.read('shows.cfg')
 
 
-
 	tvdb = tvdb_api.Tvdb()
 	file_names = [(AnimeEpisode(file=file, tvdb=tvdb, config=config)) for file in getFiles(sys.argv[1:], config=config)]
 
 	for episode in file_names:
+		if episode.skip:
+			print 'Warning: skipped episode with filename %s due to incorrect match' % (episode.filename)
+			continue
 		to_dir = os.path.join(config.get('global', 'output_root'), episode.output_dir)
 		if not os.path.isdir(to_dir):
 			try:
