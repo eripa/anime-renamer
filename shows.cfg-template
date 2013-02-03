@@ -1,0 +1,13 @@
+[global]
+file_extensions=mkv,mp4
+shows=naruto shippuuden,one piece,bleach
+output_root=/<path>/<to>/<anime root>
+
+[<show name in lower caps>]
+filler_episodes=144-151,170-171,176-196,222-242,257-260,271,279-281,284-289,290-295
+output_dir=Show Name
+
+# for example naruto shippuuden
+[naruto shippuuden]
+filler_episodes=144-151,170-171,176-196,222-242,257-260,271,279-281,284-289,290-295
+output_dir=Naruto Shippuuden
