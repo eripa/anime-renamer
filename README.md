@@ -3,6 +3,8 @@ anime-renamer
 
 A script for parsing and renaming anime episodes such as Bleach, Naruto and One Piece. The script will fetch meta-data from theTVDB to figure out "real" episode numbering (ex S02E03) from incremental numnering model used in anime releases.
 
+The script make use of the excellent [tvdb_api](https://github.com/dbr/tvdb_api) by [dbr](https://github.com/dbr).
+
 ## How to use
 ### config file
 Copy/move the shows.cfg-template file to shows.cfg and edit to your liking. All values are separated by commas (',').
