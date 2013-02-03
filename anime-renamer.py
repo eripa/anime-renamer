@@ -1,5 +1,20 @@
 #!/usr/bin/env python
-#
+#encoding:utf-8
+#author:eripa/Eric
+#project:anime-renamer
+#repository:http://github.com/eripa
+#license:unlicense (http://unlicense.org/)
+
+"""A script for parsing and renaming anime episodes such as Bleach,
+   Naruto and One Piece. The script will fetch meta-data from theTVDB
+   to figure out "real" episode numbering (ex S02E03) from incremental
+   numnering model used in anime releases.
+
+Example usage:
+    mv shows.cfg-template shows.cfg
+    *edit shows.cfg to match your desired show and directories*
+    ./anime-renamer.py /path/to/folder/with/anime_files
+    """
 
 import sys
 import os
@@ -8,7 +23,8 @@ import shutil
 import tvdb_api
 import ConfigParser
 
-__author__ = "eripa"
+
+__author__ = "eripa/Eric"
 __version__ = "0.9"
 
 class AnimeEpisode():
