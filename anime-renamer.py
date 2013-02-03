@@ -26,8 +26,8 @@ class AnimeEpisode():
 		pattern = []
 		pattern.append("(?P<group>^\[\w*\])?.+?")
 		pattern.append("(?P<show_name>"+"|".join([show.replace(' ', '.') for show in config.get('global', 'shows').split(',')]) + ")"+"{1}.+?")
-		pattern.append("(?P<episode>\d+)[\ _-]+?(?P<format>\[\w*\]).*?(?P<hash>\[\w*\])?.*?")
-		pattern.append("(?P<extension>\..+)")
+		pattern.append("(?P<episode>\d+-\d+|\d+).+?(?P<format>\[\d+p\])?.*?(?P<hash>\[\w*\])?.*?")
+		pattern.append("(?P<extension>\..+)$")
 		pattern = "".join(pattern)
 		result = re.match(pattern, self.filename, flags=re.IGNORECASE)
 		if not result:
@@ -36,19 +36,22 @@ class AnimeEpisode():
 			return
 		else:
 			self.skip = False
-		self.show_name = result.groupdict()['show_name']
-		self.episode = result.groupdict()['episode']
-		self.extension = result.groupdict()['extension'].translate(None, ".")
-		if result.groupdict()['group']:
-			self.group = result.groupdict()['group'].translate(None, "[]")
+		if re.search("(_|-|\.)", result.group('show_name')):
+			self.show_name = re.sub('[-_.]', ' ', result.group('show_name'))
+		else:
+			self.show_name = result.group('show_name')
+		self.episode = result.group('episode')
+		self.extension = result.group('extension').translate(None, ".")
+		if result.group('group'):
+			self.group = result.group('group').translate(None, "[]")
 		else:
 			self.group = None
-		if result.groupdict()['format']:
-			self.format = result.groupdict()['format'].translate(None, "[]")
+		if result.group('format'):
+			self.format = result.group('format').translate(None, "[]")
 		else:
 			self.format = None
-		if result.groupdict()['hash']:
-			self.hash = result.groupdict()['hash'].translate(None, "[]")
+		if result.group('hash'):
+			self.hash = result.group('hash').translate(None, "[]")
 		else:
 			self.hash = None
 
@@ -71,7 +74,7 @@ class AnimeEpisode():
 		try:
 			episode = episode_dict[lookup]
 		except KeyError as e:
-			sys.exit('Episode (%s) does not seem to be too exist according to the TVDB lookup information.' % lookup)
+			sys.exit('Episode %s (file: %s) does not seem to be too exist according to the TVDB lookup information.' % (lookup, self.filename))
 		episode_number = episode[episode.keys()[0]]
 		if "-" in self.episode:
 			double_episode_number = int(episode_number.split('E')[1])+1
@@ -122,11 +125,10 @@ class AnimeEpisode():
 
 	def __str__(self):
 		ret_list = [self.show_name, self.season_episode_name, self.episode]
-		ret_list += [self.format, self.group]
-		if self.hash:
-			ret_list.append(self.hash)
-		if self.filler:
-			ret_list.append('Filler')
+		if self.format: ret_list.append(self.format)
+		if self.group: ret_list.append(self.group)
+		if self.hash: ret_list.append(self.hash)
+		if self.filler: ret_list.append('Filler')
 		ret_list.append(self.extension)
 		ret_string = ' '.join(ret_list[:2]) + ' - ' + ' '.join(ret_list[2:-1])
 		return ret_string + '.' + ret_list[-1]
